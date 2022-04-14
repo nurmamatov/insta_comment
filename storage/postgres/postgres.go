@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,7 +33,6 @@ func (r *CommentRepo) CreateComment(req *pc.CreateCommentReq) (*pc.GetCommentRes
 		&res.CreatedAt,
 	)
 	if err != nil {
-		log.Println("Error while insert comment: ", err)
 		return nil, err
 	}
 
@@ -55,7 +53,6 @@ func (r *CommentRepo) GetComment(req *pc.GetCommentReq) (*pc.GetCommentRes, erro
 		return &pc.GetCommentRes{CommentId: ""}, nil
 	}
 	if err != nil {
-		log.Println("Error while Get comment", err)
 		return nil, err
 	}
 	return &res, nil
@@ -69,8 +66,10 @@ func (r *CommentRepo) UpdateComment(req *pc.UpdateCommentReq) (*pc.GetCommentRes
 	err := r.db.QueryRow(query, req.UserId, req.Text, req.CommentId).Scan(
 		&PostId,
 	)
+	if err == sql.ErrNoRows {
+		return &pc.GetCommentRes{}, nil
+	}
 	if err != nil {
-		log.Println("Error while Update comment", err)
 		return nil, err
 	}
 	return r.GetComment(&pc.GetCommentReq{PostId: PostId})
