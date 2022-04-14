@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"log"
+	"fmt"
 	pc "tasks/Instagram_clone/insta_comment/genproto/comment_proto"
+	l "tasks/Instagram_clone/insta_comment/pkg/logger"
 
-	grpcClient "tasks/Instagram_clone/insta_comment/service/grpc_client"
 	"tasks/Instagram_clone/insta_comment/storage"
 
 	"github.com/jmoiron/sqlx"
@@ -13,20 +13,20 @@ import (
 
 type CommentService struct {
 	storage storage.IStorage
-	client  grpcClient.GrpcClientI
+	logger  l.Logger
 }
 
-func NewCommentService(db *sqlx.DB, client grpcClient.GrpcClientI) *CommentService {
+func NewCommentService(db *sqlx.DB, log l.Logger) *CommentService {
 	return &CommentService{
 		storage: storage.NewStoragePg(db),
-		client:  client,
+		logger:  log,
 	}
 }
 
 func (r *CommentService) CreateComment(ctx context.Context, req *pc.CreateCommentReq) (*pc.GetCommentRes, error) {
 	res, err := r.storage.Comment().CreateComment(req)
 	if err != nil {
-		log.Println("Error while Comment.go CreateComment")
+		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
 	}
 	return res, nil
@@ -37,9 +37,10 @@ func (r *CommentService) GetComment(ctx context.Context, req *pc.GetCommentReq) 
 		return res, err
 	}
 	if err != nil {
-		log.Println("Erro while get comment in comment.go")
+		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
 	}
+	fmt.Println(res)
 	return res, nil
 }
 func (r *CommentService) UpdateComment(ctx context.Context, req *pc.UpdateCommentReq) (*pc.GetCommentRes, error) {
@@ -48,7 +49,7 @@ func (r *CommentService) UpdateComment(ctx context.Context, req *pc.UpdateCommen
 		return res, err
 	}
 	if err != nil {
-		log.Println("Erro while update comment in comment.go")
+		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
 	}
 	return res, nil
@@ -59,7 +60,7 @@ func (r *CommentService) DeleteComment(ctx context.Context, req *pc.DeleteCommen
 		return &pc.Message{Message: "Something wrong"}, nil
 	}
 	if err != nil {
-		log.Println("Erro while delete comment in comment.go")
+		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
 	}
 	return res, nil
