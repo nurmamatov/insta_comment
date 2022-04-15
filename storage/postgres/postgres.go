@@ -17,9 +17,9 @@ type CommentRepo struct {
 func NewCommentRepo(db *sqlx.DB) *CommentRepo {
 	return &CommentRepo{db: db}
 }
-func (r *CommentRepo) CreateComment(req *pc.CreateCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentRepo) CreateComment(req *pc.CreateCommentReq) (*pc.Res, error) {
 
-	res := pc.GetCommentRes{}
+	res := pc.Res{}
 	query := `INSERT INTO comments (comment_id, user_id, post_id, text, created_at) 
 				VALUES($1,$2,$3,$4,$5) 
 				RETURNING comment_id, user_id, post_id, text, created_at`
@@ -38,26 +38,33 @@ func (r *CommentRepo) CreateComment(req *pc.CreateCommentReq) (*pc.GetCommentRes
 
 	return &res, nil
 }
-func (r *CommentRepo) GetComment(req *pc.GetCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentRepo) GetComment(req *pc.GetCommentReq) (*pc.ResG, error) {
 
-	res := pc.GetCommentRes{}
-	query := `SELECT comment_id, post_id, user_id, text, created_at FROM comments WHERE post_id=$1 AND deleted_at IS NULL`
-	err := r.db.QueryRow(query, req.PostId).Scan(
-		&res.CommentId,
-		&res.PostId,
-		&res.UserId,
-		&res.Text,
-		&res.CreatedAt,
-	)
-	if err == sql.ErrNoRows {
-		return &pc.GetCommentRes{CommentId: ""}, nil
-	}
+	resG := pc.ResG{}
+	query := `SELECT comment_id, user_id, text FROM comments WHERE post_id=$1 AND deleted_at IS NULL`
+	rows, err := r.db.Query(query, req.PostId)
 	if err != nil {
 		return nil, err
 	}
-	return &res, nil
+	for rows.Next() {
+		res := pc.Result{}
+		err := rows.Scan(
+			&res.CommentId,
+			&res.UserId,
+			&res.Text,
+		)
+		if err != nil {
+			return nil, err
+		}
+		resG.Comments = append(resG.Comments, &res)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &resG, nil
 }
-func (r *CommentRepo) UpdateComment(req *pc.UpdateCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentRepo) UpdateComment(req *pc.UpdateCommentReq) (*pc.ResG, error) {
 	var (
 		PostId string
 	)
@@ -67,7 +74,7 @@ func (r *CommentRepo) UpdateComment(req *pc.UpdateCommentReq) (*pc.GetCommentRes
 		&PostId,
 	)
 	if err == sql.ErrNoRows {
-		return &pc.GetCommentRes{}, nil
+		return &pc.ResG{}, nil
 	}
 	if err != nil {
 		return nil, err

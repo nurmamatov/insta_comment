@@ -41,6 +41,7 @@ func main() {
 	s := grpc.NewServer()
 	pc.RegisterCommentServiceServer(s, commentService)
 	reflection.Register(s)
+
 	log.Info("main: server running",
 		logger.String("port", config.Port))
 

@@ -5,8 +5,8 @@ import (
 )
 
 type Comment interface {
-	CreateComment(*pc.CreateCommentReq) (*pc.GetCommentRes, error)
-	GetComment(*pc.GetCommentReq) (*pc.GetCommentRes, error)
-	UpdateComment(*pc.UpdateCommentReq) (*pc.GetCommentRes, error)
+	CreateComment(*pc.CreateCommentReq) (*pc.Res, error)
+	GetComment(*pc.GetCommentReq) (*pc.ResG, error)
+	UpdateComment(*pc.UpdateCommentReq) (*pc.ResG, error)
 	DeleteComment(*pc.DeleteCommentReq) (*pc.Message, error)
 }

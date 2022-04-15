@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	pc "tasks/Instagram_clone/insta_comment/genproto/comment_proto"
 	l "tasks/Instagram_clone/insta_comment/pkg/logger"
 
@@ -23,7 +22,7 @@ func NewCommentService(db *sqlx.DB, log l.Logger) *CommentService {
 	}
 }
 
-func (r *CommentService) CreateComment(ctx context.Context, req *pc.CreateCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentService) CreateComment(ctx context.Context, req *pc.CreateCommentReq) (*pc.Res, error) {
 	res, err := r.storage.Comment().CreateComment(req)
 	if err != nil {
 		r.logger.Error("Error: ", l.Error(err))
@@ -31,23 +30,18 @@ func (r *CommentService) CreateComment(ctx context.Context, req *pc.CreateCommen
 	}
 	return res, nil
 }
-func (r *CommentService) GetComment(ctx context.Context, req *pc.GetCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentService) GetComment(ctx context.Context, req *pc.GetCommentReq) (*pc.ResG, error) {
 	res, err := r.storage.Comment().GetComment(req)
-	if err != nil && res.CommentId == "" {
-		return res, err
-	}
+
 	if err != nil {
 		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
 	}
-	fmt.Println(res)
 	return res, nil
 }
-func (r *CommentService) UpdateComment(ctx context.Context, req *pc.UpdateCommentReq) (*pc.GetCommentRes, error) {
+func (r *CommentService) UpdateComment(ctx context.Context, req *pc.UpdateCommentReq) (*pc.ResG, error) {
 	res, err := r.storage.Comment().UpdateComment(req)
-	if err != nil && res.CommentId == "" {
-		return res, err
-	}
+
 	if err != nil {
 		r.logger.Error("Error: ", l.Error(err))
 		return nil, err
